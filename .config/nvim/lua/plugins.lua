@@ -25,6 +25,9 @@ return {
         respect_buf_cwd = false,
         disable_netrw = false,
         hijack_netrw = false,
+        view = {
+          adaptive_size = true,
+        },
         update_focused_file = {
           enable = true,
         },
