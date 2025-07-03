@@ -40,8 +40,44 @@ vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Telescope live gr
 vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
 vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Telescope help tags" })
 
--- LSP
--- Nvim 0.10
+-- LSPs
+-- Pyright - Nvim 0.10
 require('lspconfig').pyright.setup{}
--- Nvim 0.11+
+-- Pyright - Nvim 0.11+
 -- vim.lsp.enable('pyright')
+
+require('jdtls').start_or_attach({
+  cmd = {
+    vim.fn.expand'$HOME/.local/share/nvim/mason/bin/jdtls',
+      ('--jvm-arg=-javaagent:%s'):format(vim.fn.expand'$HOME/.local/share/nvim/mason/packages/jdtls/lombok.jar'),
+  },
+  capabilities = require('cmp_nvim_lsp').default_capabilities(),
+  bundles = vim.split(vim.fn.glob('$HOME/.local/share/nvim/mason/packages/java-*/extension/server/*.jar', 1), '\n'),
+})
+
+require('mason').setup()
+
+require('cmp').setup({
+  snippet = {
+    expand = function(args)
+      require('luasnip').lsp_expand(args.body)
+    end
+  },
+  mapping = {
+    ['<C-c>'] = require'cmp'.mapping.abort(),
+    ['<CR>'] = require'cmp'.mapping.confirm(),
+    ['<C-n>'] = require'cmp'.mapping.select_next_item(),
+    ['<C-p>'] = require'cmp'.mapping.select_prev_item(),
+  },
+  sources = {
+    {
+      name = 'nvim_lsp',
+    },
+  },
+})
+
+require('neotest').setup({
+  adapters = {
+    require'neotest-java',
+  },
+})

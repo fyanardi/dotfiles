@@ -79,7 +79,7 @@ return {
     config = function()
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
       local nvim_lsp = require('lspconfig')
-      local servers = { 'pyright', 'ts_ls' }
+      local servers = { 'pyright', 'ts_ls', 'jdtls' }
       for _, lsp in ipairs(servers) do
         nvim_lsp[lsp].setup {
           capabilities = capabilities,
@@ -119,5 +119,31 @@ return {
   -- the excellent One Dark syntax theme for the Atom text editor.
   {
     "joshdick/onedark.vim",
+  },
+
+  {
+    'williamboman/mason.nvim',
+  },
+
+  -- install Eclipse JDT LS with ":MasonInstall jdtls"
+  {
+    'mfussenegger/nvim-jdtls',
+    dependencies = 'hrsh7th/cmp-nvim-lsp',
+  },
+
+  {
+    'nvim-neotest/neotest',
+     dependencies = {
+       'nvim-neotest/nvim-nio',
+       'nvim-lua/plenary.nvim',
+       'nvim-treesitter/nvim-treesitter',
+       'antoinemadec/FixCursorHold.nvim',
+       'rcasia/neotest-java',
+    },
+  },
+
+  {
+    'rcarriga/nvim-dap-ui',
+    dependencies = 'mfussenegger/nvim-dap',
   },
 }
