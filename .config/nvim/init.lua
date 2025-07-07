@@ -6,9 +6,15 @@ vim.o.expandtab = true
 vim.o.autoindent = true
 vim.o.list = true
 vim.o.clipboard = "unnamed"
+-- show line numbers
 vim.o.number = true
 vim.o.termguicolors = true
 vim.g.onedark_terminal_italics = 2
+-- show title
+vim.o.title = true
+-- different tabstop for python and js/ts
+vim.cmd('autocmd BufEnter *.py :setlocal tabstop=4 shiftwidth=4 expandtab')
+vim.cmd('autocmd BufEnter *.js,*.ts,*.tsx :setlocal tabstop=2 shiftwidth=2 expandtab')
 
 -- Nerd font
 -- 1. download from https://www.nerdfonts.com/
