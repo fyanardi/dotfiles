@@ -15,6 +15,8 @@ vim.o.title = true
 -- different tabstop for python and js/ts
 vim.cmd('autocmd BufEnter *.py :setlocal tabstop=4 shiftwidth=4 expandtab')
 vim.cmd('autocmd BufEnter *.js,*.ts,*.tsx :setlocal tabstop=2 shiftwidth=2 expandtab')
+-- buffer & native system clipboard interoperability
+vim.opt.clipboard = "unnamedplus"
 
 -- Nerd font
 -- 1. download from https://www.nerdfonts.com/
