@@ -14,3 +14,6 @@ wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.z
 mkdir -p ~/.fonts
 unzip ~/Downloads/FiraCode.zip -d ~/.fonts
 fc-cache -fv
+
+# Install global NPM packages into user's local directory
+npm config set prefix '~/.local/'
