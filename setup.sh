@@ -1,6 +1,7 @@
 #!/bin/sh
 
 cp -r .config ~
+cp .bash_aliases ~
 
 # Git setup
 git config --global user.name "Fredy Yanardi"

@@ -1,0 +1,5 @@
+alias k='kubectl'
+alias kgp='kubectl get pods'
+alias kl='kubectl logs'
+alias kcgc='kubectl config get-contexts'
+alias kcuc='kubectl config set-context'
