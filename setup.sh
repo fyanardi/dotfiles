@@ -1,6 +1,8 @@
 #!/bin/sh
 
 cp -r .config ~
+cp -r .ssh ~
+cp -r scripts ~
 cp .bash_aliases ~
 
 # Git setup
