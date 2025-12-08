@@ -1,3 +1,3 @@
 #!/bin/sh
 
-dockerd-rootless.sh --iptables=false
+PATH=/sbin:$PATH dockerd-rootless.sh --iptables=false
