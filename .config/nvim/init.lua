@@ -50,10 +50,10 @@ vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Telescope help ta
 
 -- LSPs
 -- Pyright - Nvim 0.10
-require('lspconfig').pyright.setup{}
+-- require('lspconfig').pyright.setup{}
 -- Pyright - Nvim 0.11+
--- vim.lsp.enable('pyright')
-
+vim.lsp.enable('pyright')
+-- 
 require('jdtls').start_or_attach({
   cmd = {
     vim.fn.expand'$HOME/.local/share/nvim/mason/bin/jdtls',

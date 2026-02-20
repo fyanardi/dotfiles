@@ -116,16 +116,15 @@ return {
         buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
       end
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      local nvim_lsp = require('lspconfig')
       local servers = { 'pyright', 'ts_ls', 'jdtls' }
       for _, lsp in ipairs(servers) do
-        nvim_lsp[lsp].setup {
+        vim.lsp.config(lsp, {
           capabilities = capabilities,
           on_attach = on_attach,
           flags = {
             debounce_text_changes = 150,
           }
-        }
+        })
       end
     end,
   },
