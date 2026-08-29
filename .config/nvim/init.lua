@@ -39,6 +39,7 @@ vim.pack.add({
   { src = "https://github.com/hrsh7th/nvim-cmp.git" },
   { src = "https://github.com/hrsh7th/cmp-nvim-lsp.git" },
   { src = "https://github.com/hrsh7th/cmp-buffer.git" },
+  { src = "https://github.com/mfussenegger/nvim-jdtls.git" },
 })
 
 -- =========================================
@@ -128,7 +129,8 @@ vim.cmd.colorscheme("catppuccin")
 -- LSP configuration
 -- =========================================
 local lsp = vim.lsp
-local servers = { 'pyright', 'tsserver', 'terraformls' }
+-- No Mason installed, hence this assumes all language server binaries are already in the path
+local servers = { 'pyright', 'tsserver', 'jdtls', 'terraformls' }
 
 for _, server in ipairs(servers) do
   lsp.config(server, {
