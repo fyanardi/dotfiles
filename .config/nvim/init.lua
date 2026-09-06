@@ -19,6 +19,15 @@ vim.opt.incsearch = true
 -- Show current file in the title bar
 vim.opt.title = true
 
+-- Show whitespace characters
+vim.opt.list = true
+vim.opt.listchars = {
+  tab = '» ',
+  trail = '·',
+  nbsp = '␣',
+  space = '·'
+}
+
 -- Remap leader to space
 vim.g.mapleader = " "
 
