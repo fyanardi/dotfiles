@@ -48,7 +48,6 @@ vim.pack.add({
   { src = "https://github.com/hrsh7th/nvim-cmp.git" },
   { src = "https://github.com/hrsh7th/cmp-nvim-lsp.git" },
   { src = "https://github.com/hrsh7th/cmp-buffer.git" },
-  { src = "https://github.com/mfussenegger/nvim-jdtls.git" },
 })
 
 -- =========================================
@@ -148,6 +147,16 @@ for _, server in ipairs(servers) do
   })
   lsp.enable(server)
 end
+
+-- Re-sync Gradle/Maven project config in jdtls (e.g. after editing settings.gradle / build.gradle)
+vim.api.nvim_create_user_command('JdtUpdateConfig', function()
+  local client = lsp.get_clients({ bufnr = 0, name = 'jdtls' })[1]
+  if client then
+    client:notify('java/projectConfigurationUpdate', { uri = vim.uri_from_bufnr(0) })
+  else
+    vim.notify('jdtls is not attached to this buffer', vim.log.levels.WARN)
+  end
+end, { desc = 'Re-sync Gradle/Maven project config in jdtls' })
 
 -- =========================================
 -- CMP (Completion Engine)
