@@ -1,0 +1,27 @@
+// Gradle init script passed to jdtls's Gradle import (see init.lua).
+//
+// Gradle's Eclipse model, which Buildship imports into jdtls, only takes dependencies on
+// included builds (includeBuild()) from the runtime classpaths. A compileOnly dependency on an
+// included build is therefore missing from main's classpath, or marked test-only when the same
+// build is also a test dependency, and main sources can't resolve its classes. Add those
+// dependencies back as workspace project references visible to main sources.
+allprojects {
+    plugins.withId('java') {
+        apply plugin: 'eclipse'
+        eclipse.classpath.file.whenMerged { classpath ->
+            def compileClasspath = configurations.compileClasspath.incoming.resolutionResult
+            def projects = compileClasspath.allComponents
+                .collect { it.id }
+                .findAll { it instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier }
+                .findAll { it != compileClasspath.root.id }
+                .collect { '/' + it.projectName } as Set
+            def existing = classpath.entries.findAll { it.kind == 'src' && it.path in projects }
+            existing.each { it.entryAttributes.remove('test') }
+            (projects - existing*.path).each { path ->
+                def dependency = new org.gradle.plugins.ide.eclipse.model.ProjectDependency(path)
+                dependency.entryAttributes['without_test_code'] = 'true'
+                classpath.entries << dependency
+            }
+        }
+    }
+}

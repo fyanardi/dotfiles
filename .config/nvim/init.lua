@@ -148,6 +148,108 @@ for _, server in ipairs(servers) do
   lsp.enable(server)
 end
 
+-- Gradle build dirs reachable from `dir` through includeBuild() in settings.gradle(.kts),
+-- including `dir` itself, as a set
+local function gradle_composite(dir, seen)
+  seen = seen or {}
+  dir = vim.fs.normalize(dir)
+  if seen[dir] then
+    return seen
+  end
+  seen[dir] = true
+  for _, name in ipairs({ 'settings.gradle', 'settings.gradle.kts' }) do
+    local f = io.open(dir .. '/' .. name)
+    if f then
+      for line in f:lines() do
+        local path = not line:match('^%s*//') and line:match('includeBuild%s*%(?%s*["\']([^"\']+)["\']')
+        if path then
+          gradle_composite(path:sub(1, 1) == '/' and path or dir .. '/' .. path, seen)
+        end
+      end
+      f:close()
+    end
+  end
+  return seen
+end
+
+-- Composite builds in jdtls:
+-- * jdtls only keeps imported projects that are inside a workspace folder, so the included
+--   builds Buildship imports from sibling directories get dropped and their classes don't
+--   resolve. Pass every included build as a workspace folder. jdtls reads its initial folders
+--   from initializationOptions.workspaceFolders only (falling back to rootUri), but tracks
+--   workspace/didChangeWorkspaceFolders.
+-- * Gradle's Eclipse model drops compileOnly dependencies on included builds from main's
+--   classpath; jdtls/composite-compile-only.gradle adds them back. jdtls reads settings from
+--   initializationOptions.settings at startup, so the first import already uses it.
+-- * Every jdtls writes .project/.classpath/.settings into each included build's directory, so
+--   two servers sharing a build overwrite each other's config. Reuse a running jdtls when the new
+--   project shares any build with it, adding the builds it doesn't have yet as workspace folders.
+-- Reserved file name (an empty file) marking a Java project's root folder for jdtls
+local JDTLS_ROOT_MARKER = '.jdtls-root'
+
+lsp.config('jdtls', {
+  -- The project root is the nearest folder above the file containing JDTLS_ROOT_MARKER. Without
+  -- one, it falls back to lspconfig's markers (gradlew, settings.gradle, build.gradle, pom.xml,
+  -- .git, etc.). vim.fs.root() searches the marker groups in order, so JDTLS_ROOT_MARKER anywhere
+  -- above the file wins over a nearer default marker. Without any marker, jdtls doesn't start.
+  root_dir = function(bufnr, on_dir)
+    local defaults = vim.lsp.config.jdtls.root_markers or {}
+    if type(defaults[1]) == 'string' then
+      defaults = { defaults }
+    end
+    local root = vim.fs.root(bufnr, { { JDTLS_ROOT_MARKER }, unpack(defaults) })
+    if root then
+      on_dir(root)
+    end
+  end,
+  settings = {
+    java = {
+      import = {
+        gradle = {
+          arguments = {
+            '--init-script',
+            vim.fn.stdpath('config') .. '/jdtls/composite-compile-only.gradle',
+          },
+        },
+      },
+    },
+  },
+  before_init = function(params, config)
+    local options = { settings = config.settings }
+    if config.root_dir and type(params.workspaceFolders) == 'table' then
+      local root = vim.fs.normalize(config.root_dir)
+      for dir in pairs(gradle_composite(root)) do
+        if dir ~= root then
+          vim.list_extend(params.workspaceFolders, lsp._get_workspace_folders(dir))
+        end
+      end
+      options.workspaceFolders = vim.tbl_map(function(folder)
+        return folder.uri
+      end, params.workspaceFolders)
+    end
+    params.initializationOptions = vim.tbl_extend('force', params.initializationOptions or {}, options)
+  end,
+  reuse_client = function(client, config)
+    if client.name ~= config.name or client:is_stopped() or not config.root_dir then
+      return false
+    end
+    local imported = {}
+    for _, folder in ipairs(client.workspace_folders or {}) do
+      imported[vim.fs.normalize(folder.name)] = true
+    end
+    local builds = gradle_composite(config.root_dir)
+    if not vim.iter(pairs(builds)):any(function(dir) return imported[dir] end) then
+      return false
+    end
+    for dir in pairs(builds) do
+      if not imported[dir] then
+        client:_add_workspace_folder(dir)
+      end
+    end
+    return true
+  end,
+})
+
 -- Re-sync Gradle/Maven project config in jdtls (e.g. after editing settings.gradle / build.gradle)
 vim.api.nvim_create_user_command('JdtUpdateConfig', function()
   local client = lsp.get_clients({ bufnr = 0, name = 'jdtls' })[1]
